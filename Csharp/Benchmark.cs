@@ -7,7 +7,9 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            Run("Unsafe Nbody", 10000, () => UnsafeCode.NBody.NbodyRun());
+            Run("Nbody1", 100, () => Nbody.NBody1.NBodyRun());
+            Run("Nbody2", 100, () => Nbody.Nbody2.NBodyRun());
+            Run("Nbody3", 100, () => Nbody.Nbody3.NBodyRun());
         }
         
         public static void Run(string name, int iterations, Action action)
