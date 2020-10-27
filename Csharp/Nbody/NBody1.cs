@@ -38,7 +38,7 @@
             }
         }
 
-        public static void NBodyRun(int size = 10000, bool output = false)
+        public static void NBodyRun(int repeatTimes = 10000, bool output = false)
         {
             unchecked
             {
@@ -103,7 +103,7 @@
                 if(output)
                     Console.WriteLine(EnergyAVX(system, last).ToString("F9"));
 
-                RunSimulation(size,
+                RunSimulation(repeatTimes,
                     0.01d,
                     system,
                     last);

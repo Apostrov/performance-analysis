@@ -7,9 +7,9 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            Run("Nbody1", 100, () => Nbody.NBody1.NBodyRun());
-            Run("Nbody2", 100, () => Nbody.Nbody2.NBodyRun());
-            Run("Nbody3", 100, () => Nbody.Nbody3.NBodyRun());
+            Run("Nbody1", 10, () => Nbody.NBody1.NBodyRun(50000000));
+            Run("Nbody2", 10, () => Nbody.Nbody2.NBodyRun(50000000));
+            Run("Nbody3", 10, () => Nbody.Nbody3.NBodyRun(50000000));
         }
         
         public static void Run(string name, int iterations, Action action)
@@ -21,7 +21,7 @@ namespace Benchmarks
                 // Perform garbage collection.
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-
+                
                 // Force JIT compilation of the method.
                 action.Invoke();
 
@@ -29,6 +29,7 @@ namespace Benchmarks
                 Stopwatch watch = Stopwatch.StartNew();
                 for (int i = 0; i < iterations; i++)
                 {
+                    Console.Write($"{i + 1} ");
                     action.Invoke();
                 }
                 watch.Stop();

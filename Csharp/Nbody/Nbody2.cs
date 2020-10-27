@@ -12,12 +12,12 @@ namespace Benchmarks.Nbody
 {
     public static class Nbody2
     {
-        public static void NBodyRun(int size = 10000, bool output = false)
+        public static void NBodyRun(int repeatTimes = 10000, bool output = false)
         {
             NBodySystem bodies = new NBodySystem();
             if(output)
                 Console.WriteLine("{0:f9}", bodies.Energy());
-            for (int i = 0; i < size; i++) bodies.Advance(0.01);
+            for (int i = 0; i < repeatTimes; i++) bodies.Advance(0.01);
             if(output)
                 Console.WriteLine("{0:f9}", bodies.Energy());
         }
