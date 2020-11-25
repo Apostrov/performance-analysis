@@ -10,6 +10,10 @@ fun main() {
 class Benchmarks {
     companion object {
         fun Run(name: String, iterations: Int, action: () -> Unit) {
+            // Perform garbage collection.
+            System.gc()
+            System.runFinalization();
+
             print("Running benchmark '${name}' for $iterations iterations... ")
             var time = 0L;
             for(i in 1..iterations)
