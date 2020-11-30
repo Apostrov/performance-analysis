@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Diagnostics;
+using Benchmarks;
 
-namespace Benchmarks
+namespace PerformanceAnalyze
 {
     public static class Benchmark
     {
-        static void Main(string[] args)
+        private const string fastaOutputPath =
+            @"A:\Projects\performance-analysis\Csharp\Benchmarks\assets\fasta.txt"; // Warning! file can have big size
+
+        public static void Main(string[] args)
         {
-            Run("Nbody1", 10, () => Nbody.NBody1.NBodyRun(50000000));
-            Run("Nbody2", 10, () => Nbody.Nbody2.NBodyRun(50000000));
-            Run("Nbody3", 10, () => Nbody.Nbody3.NBodyRun(50000000));
+            Run("FannkuchRedux", 10, () => FannkuchRedux.RunBenchmark(12));
+            Run("Nbody", 10, () => NBody.RunBenchmark(50000000));
+            // Run fasta before ReverseComplement, because it uses his output
+            Run("Fasta", 10, () => Fasta.RunBenchmark(fastaOutputPath, 25000000));
+            Run("ReverseComplement", 3, () => ReverseComplement.RunBenchmark(fastaOutputPath)); // TODO n > 3 iteration fail to execute
         }
         
         public static void Run(string name, int iterations, Action action)
@@ -35,7 +41,7 @@ namespace Benchmarks
                 watch.Stop();
             
                 // Output results.
-                Console.WriteLine($"Elapsed time {watch.ElapsedMilliseconds / iterations} ms.");
+                Console.WriteLine($"| Elapsed time {watch.ElapsedMilliseconds / iterations} ms.");
             }
             catch (OutOfMemoryException)
             {

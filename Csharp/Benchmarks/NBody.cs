@@ -1,7 +1,7 @@
-﻿namespace Benchmarks.Nbody
+﻿namespace Benchmarks
 {
     /**
-    * The Computer Language Benchmarks Game
+    * The Computer Language PerformanceAnalyze Game
     * https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
     *
     * Contributed by Derek Ziemba
@@ -18,7 +18,7 @@
     using V256d = System.Runtime.Intrinsics.Vector256<double>;
     using V128d = System.Runtime.Intrinsics.Vector128<double>;
 
-    public static unsafe class NBody1
+    public static unsafe class NBody
     {
         const MethodImplOptions AllOptimizations =
             AggressiveInlining | AggressiveOptimization;
@@ -38,7 +38,7 @@
             }
         }
 
-        public static void NBodyRun(int repeatTimes = 10000, bool output = false)
+        public static void RunBenchmark(int repeatTimes = 10000, bool output = false)
         {
             unchecked
             {

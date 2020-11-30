@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks.csproj", "{076CA5E3-AB8E-40A6-964E-B7298A6E68BB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceAnalyze", "PerformanceAnalyze.csproj", "{076CA5E3-AB8E-40A6-964E-B7298A6E68BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
