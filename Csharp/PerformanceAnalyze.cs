@@ -4,7 +4,7 @@ using Benchmarks;
 
 namespace PerformanceAnalyze
 {
-    public static class Benchmark
+    public static class PerformanceAnalyze
     {
         private const string fastaOutputPath =
             @"A:\Projects\performance-analysis\Csharp\Benchmarks\assets\fasta.txt"; // Warning! file can have big size
