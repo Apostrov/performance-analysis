@@ -13,9 +13,9 @@ namespace PerformanceAnalyze
         {
             Run("FannkuchRedux", 10, () => FannkuchRedux.RunBenchmark(12));
             Run("Nbody", 10, () => NBody.RunBenchmark(50000000));
-            // Run fasta before ReverseComplement, because it uses his output
+            // Run Fasta before KNucleotide, because it uses his output
             Run("Fasta", 10, () => Fasta.RunBenchmark(fastaOutputPath, 25000000));
-            Run("ReverseComplement", 3, () => ReverseComplement.RunBenchmark(fastaOutputPath)); // TODO n > 3 iteration fail to execute
+            Run("KNucleotide", 10, () => KNucleotide.RunBenchmark(fastaOutputPath));
         }
         
         public static void Run(string name, int iterations, Action action)
