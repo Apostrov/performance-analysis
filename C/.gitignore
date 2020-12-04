@@ -3,6 +3,7 @@
 
 # User-specific stuff
 .idea/
+Benchmarks/assets/
 
 # CMake
 cmake-build-*/

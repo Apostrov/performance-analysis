@@ -1,169 +1,173 @@
-/* The Computer Language Benchmarks Game
-        * https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
+// The Computer Language Benchmarks Game
+// https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
+//
+// Contributed by Jeremy Zerfas
+// Based on the Ada program by Jonathan Parker and Georg Bauhaus which in turn
+// was based on code by Dave Fladebo, Eckehard Berns, Heiner Marxen, Hongwei Xi,
+// and The Anh Tran and also the Java program by Oleg Mazurov.
 
-contributed by Miroslav Rubanets
-algorithm is based on Java 6 source code by Oleg Mazurov
-        source is based on my C++ submission.
-
-Building checked in Ubuntu 11.4 with g++ 4.5 (both x86 and amd64).
-gcc -pipe -Wall -O3 -fomit-frame-pointer -march=native -lpthread \
-    -falign-labels=8 fannkuchredux.gcc-2.c -o fannkuchredux.gcc-2.gcc_run
-note that -falign-labels=8 is needed only on x86 with gcc 4.5
-*/
+// This value controls how many blocks the workload is broken up into (as long
+// as the value is less than or equal to the factorial of the argument to this
+// program) in order to allow the blocks to be processed in parallel if
+// possible. PREFERRED_NUMBER_OF_BLOCKS_TO_USE should be some number which
+// divides evenly into all factorials larger than it. It should also be around
+// 2-8 times the amount of threads you want to use in order to create enough
+// blocks to more evenly distribute the workload amongst the threads.
+#define PREFERRED_NUMBER_OF_BLOCKS_TO_USE 12
 
 #include "Benchmarks.h"
-
-//std stuff
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-//posix threads
-#include <pthread.h>
-//linux (for sysconf)
-#include <unistd.h>
-//gcc stuff
-#define unlikely(x)     __builtin_expect((x),0)
-//hardcoded limits
-#define MAX_PROBLEM_SIZE 12
-#define MAX_CPU_LIMIT 4
 
-inline int max(int a, int b){ return a > b ? a : b;}
-inline int min(int a, int b){ return a < b ? a : b;}
+// intptr_t should be the native integer type on most sane systems.
+typedef intptr_t intnative_t;
 
-typedef struct tagResult{int maxflips, checksum; } Result;
-typedef struct tagPermutationGenerator{
-    int perm[MAX_PROBLEM_SIZE];
-    int count[MAX_PROBLEM_SIZE];
-    int* factorials;
-    int length;
-} G;
+void FannkuchReduxRun(int repeatTimes, int output)
+{
+    const intnative_t n=repeatTimes;
 
-inline void copy(int* dst, int* src, int n){
-    int* e = src+n;
-    for(; src != e; ++src,++dst )
-        *dst = *src;
-}
-inline void rotate( int* data, int n){
-    int i;
-    int first = data[0];
-    for (i=0; i<n; ++i)
-        data[i] = data[i+1];
-    data[n] = first;
-}
-inline void reverse( int*data, int n ){
-    int * lo = &data[0], * hi = &data[n];
-    for (; lo < hi; ++lo, --hi){
-        int tmp = *lo; *lo = *hi; *hi = tmp;
-    }
-}
-void first_permutation( G* g, int idx ){
-    int p[MAX_PROBLEM_SIZE];
-    int pp[MAX_PROBLEM_SIZE];
-    int len = g->length;
-    int d, i, j;
-    memset(p, 0, MAX_PROBLEM_SIZE*sizeof(int));
-    memset(pp, 0, MAX_PROBLEM_SIZE*sizeof(int));
-    for ( i=0; i<len; ++i )
-        p[i] = i;
-    for ( i=len-1; i>0; --i ) {
-        d = idx / g->factorials[i];
-        g->count[i] = d;
-        idx = idx % g->factorials[i];
-        copy( &pp[0], &p[0], (i+1) );
-        for ( j=0; j<=i; ++j ){
-            p[j] = j+d <= i ? pp[j+d] : pp[j+d-i-1];
+    // Create and initialize factorial_Lookup_Table.
+    intnative_t factorial_Lookup_Table[n+1];
+    factorial_Lookup_Table[0]=1;
+    for(intnative_t i=0; ++i<=n;)
+        factorial_Lookup_Table[i]=i*factorial_Lookup_Table[i-1];
+
+    // Determine the block_Size to use. If n! is less than
+    // PREFERRED_NUMBER_OF_BLOCKS_TO_USE then just use a single block to prevent
+    // block_Size from being set to 0. This also causes smaller values of n to
+    // be computed serially which is faster and uses less resources for small
+    // values of n.
+    const intnative_t block_Size=factorial_Lookup_Table[n]/
+                                 (factorial_Lookup_Table[n]<PREFERRED_NUMBER_OF_BLOCKS_TO_USE ?
+                                  1 : PREFERRED_NUMBER_OF_BLOCKS_TO_USE);
+
+    intnative_t maximum_Flip_Count=0, checksum=0;
+
+    // Iterate over each block.
+#pragma omp parallel for \
+     reduction(max:maximum_Flip_Count) reduction(+:checksum)
+    for(intnative_t initial_Permutation_Index_For_Block=0;
+        initial_Permutation_Index_For_Block<factorial_Lookup_Table[n];
+        initial_Permutation_Index_For_Block+=block_Size){
+
+        intnative_t count[n];
+        int8_t temp_Permutation[n], current_Permutation[n];
+
+
+        // Initialize count and current_Permutation.
+        count[0]=0;
+        for(intnative_t i=0; i<n; ++i)
+            current_Permutation[i]=i;
+        for(intnative_t i=n-1,
+                    permutation_Index=initial_Permutation_Index_For_Block; i>0; --i){
+            const intnative_t d=permutation_Index/factorial_Lookup_Table[i];
+            permutation_Index=permutation_Index%factorial_Lookup_Table[i];
+            count[i]=d;
+
+            for(intnative_t j=0; j<n; ++j)
+                temp_Permutation[j]=current_Permutation[j];
+            for(intnative_t j=0; j<=i; ++j)
+                current_Permutation[j]= j+d<=i ?
+                                        temp_Permutation[j+d] : temp_Permutation[j+d-i-1];
+        }
+
+
+        // Iterate over each permutation in the block.
+        const intnative_t last_Permutation_Index_In_Block=
+                initial_Permutation_Index_For_Block+block_Size-1;
+        for(intnative_t permutation_Index=initial_Permutation_Index_For_Block; ;
+            ++permutation_Index){
+
+            // If the first value in the current_Permutation is not 1 (0) then
+            // we will need to do at least one flip for the current_Permutation.
+            if(current_Permutation[0]>0){
+
+                // Make a copy of current_Permutation[] to work on. Note that we
+                // don't need to copy the first value since that will be stored
+                // in a separate variable since it gets used a lot.
+                for(intnative_t i=0; ++i<n;)
+                    temp_Permutation[i]=current_Permutation[i];
+
+                intnative_t flip_Count=1;
+
+                // Flip temp_Permutation until the element at the first_Value
+                // index is 1 (0).
+                for(intnative_t first_Value=current_Permutation[0];
+                    temp_Permutation[first_Value]>0; ++flip_Count){
+
+                    // Record the new_First_Value and restore the old
+                    // first_Value at its new flipped position.
+                    const int8_t new_First_Value=temp_Permutation[first_Value];
+                    temp_Permutation[first_Value]=first_Value;
+
+                    // If first_Value is greater than 3 (2) then we are flipping
+                    // a series of four or more values so we will also need to
+                    // flip additional elements in the middle of the
+                    // temp_Permutation.
+                    if(first_Value>2){
+                        intnative_t low_Index=1, high_Index=first_Value-1;
+                        // Note that this loop is written so that it will run at
+                        // most 16 times so that compilers will be more willing
+                        // to unroll it. Consequently this won't work right when
+                        // n is greater than 35. This would probably be the
+                        // least of your concerns since 21! won't fit into 64
+                        // bit integers and even if it did you probably wouldn't
+                        // want to run this program with a value that large
+                        // since it would take thousands of years to do on a
+                        // modern desktop computer. ;-)
+                        do{
+                            const int8_t temp=temp_Permutation[high_Index];
+                            temp_Permutation[high_Index]=
+                                    temp_Permutation[low_Index];
+                            temp_Permutation[low_Index]=temp;
+                        }while(low_Index+++3<=high_Index-- && low_Index<16);
+                    }
+
+                    // Update first_Value to new_First_Value that we recorded
+                    // earlier.
+                    first_Value=new_First_Value;
+                }
+
+
+                // Update the checksum.
+                if(permutation_Index%2==0)
+                    checksum+=flip_Count;
+                else
+                    checksum-=flip_Count;
+
+                // Update maximum_Flip_Count if necessary.
+                if(flip_Count>maximum_Flip_Count)
+                    maximum_Flip_Count=flip_Count;
+            }
+
+
+            // Break out of the loop when we get to the
+            // last_Permutation_Index_In_Block.
+            if(permutation_Index>=last_Permutation_Index_In_Block)
+                break;
+
+            // Generate the next permutation.
+            int8_t first_Value=current_Permutation[1];
+            current_Permutation[1]=current_Permutation[0];
+            current_Permutation[0]=first_Value;
+            for(intnative_t i=1; ++count[i]>i;){
+                count[i++]=0;
+                const int8_t new_First_Value=current_Permutation[0]=
+                                                     current_Permutation[1];
+
+                for(intnative_t j=0; ++j<i;)
+                    current_Permutation[j]=current_Permutation[j+1];
+
+                current_Permutation[i]=first_Value;
+                first_Value=new_First_Value;
+            }
         }
     }
-    copy( &g->perm[0], &p[0], len );
-}
-void next_permutation( G*p ){
-    int i=1;
-    rotate( p->perm, i);
-    while (++p->count[i] > i){
-        p->count[i++] = 0;
-        rotate( p->perm, i );
-    }
-}
-typedef struct tagTaskContext{
-    union{// to avoid false sharing on multi cpu.
-        pthread_t thread;
-        char padding[64];
-    };
-    G generator;
-    int first_index, last_index;
-    Result result;
-} Task;
 
-void* task_body( void *pvoid ){
-    Task* p = (Task*)pvoid;
-    int total_flips;
-    int i = p->first_index;
-    int n = p->last_index;
-    first_permutation( &p->generator, i );
-    for(; i < n; ++i){
-        int data[MAX_PROBLEM_SIZE];
-        register int flips = 0;
-        register int f =  p->generator.perm[0];
-        if(f){
-            copy( &data[0], &p->generator.perm[0], p->generator.length );
-            do{
-                reverse( data, f );
-                ++flips;
-            }while( unlikely( f = data[0] ) );
-        }
-        total_flips = flips;
-        p->result.maxflips = max(p->result.maxflips, total_flips);
-        p->result.checksum += i%2 ==0 ? total_flips : -total_flips;
-        next_permutation( &p->generator );
-    }
-    return 0;
-}
-int hardware_concurrency(){//linux specific
-    long numCPU = sysconf( _SC_NPROCESSORS_ONLN );
-    if( numCPU <= 0 ) return 1;
-    if( numCPU >= MAX_CPU_LIMIT ) return MAX_CPU_LIMIT;
-    return (int)numCPU;
-}
-
-void FannkuchReduxRun(int repeatTimes, int output){
-    int len;
-    int factorials[MAX_PROBLEM_SIZE+1];
-    int n_cpu;
-    int i, n, index, index_max, index_step, err;
-    Result result;
-    Task parts[MAX_CPU_LIMIT];
-    len = repeatTimes;
-
-    factorials[0] = 1;
-    for( i = 1; i<len+1; ++i )
-        factorials[i] = factorials[i-1]*i;
-    n_cpu = hardware_concurrency();
-    result.maxflips = 0;
-    result.checksum = 0;
-    n = min( n_cpu, MAX_CPU_LIMIT );
-    index = 0;
-    index_max = factorials[len];
-    index_step = (index_max + n-1)/n;
-    for(i = 0; i<n; ++i, index += index_step){
-        Task* p = &parts[i];
-        //init task
-        memset( p, 0, sizeof(Task) );
-        p->generator.factorials = factorials;
-        p->generator.length = len;
-        p->first_index = index;
-        p->last_index = index + index_step;
-        err = pthread_create( &p->thread, 0, task_body, p );
-        if( err ) return;
-    }
-    for(i = 0; i<n; ++i){
-        Task *p = &parts[i];
-        err = pthread_join( p->thread, 0 );
-        if( err ) return;
-        result.maxflips = max( p->result.maxflips, result.maxflips );
-        result.checksum += p->result.checksum;
-    }
     if(output)
     {
-        printf("%d\nPfannkuchen(%d) = %d\n", result.checksum, len, result.maxflips);
+        // Output the results to stdout.
+        printf("%jd\nPfannkuchen(%jd) = %jd\n", (intmax_t)checksum, (intmax_t)n,
+               (intmax_t)maximum_Flip_Count);
     }
 }
