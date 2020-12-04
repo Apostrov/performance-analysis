@@ -3,28 +3,41 @@ package main
 import (
 	"Benchmarks"
 	"fmt"
+	"os"
 	"runtime"
 	"time"
 )
 
+const fastaOutputPath = "fasta.txt"
+
 func main() {
+	run("FannkuchReduxRun", 10, func() {
+		Benchmarks.FannkuchReduxRun(12 , false)
+	})
 	run("Nbody", 10, func() {
 		Benchmarks.NbodyRun(50000000, false)
 	})
+	run("Fasta", 10, func() {
+		Benchmarks.FastaRun(fastaOutputPath, 25000000)
+	})
+	run("Knucleotide", 10, func() {
+		Benchmarks.KnucleotidexRun(fastaOutputPath, false)
+	})
+
+	var _ = os.Remove(fastaOutputPath)
 }
 
 func run(name string, iterations int, action func()) {
-	fmt.Printf("Running benchmark %s for %d iterations... ", name, iterations)
+	fmt.Printf("Running benchmark '%s' for %d iterations... ", name, iterations)
 
 	// Perform garbage collection.
 	runtime.GC()
 
 	start := time.Now()
-	for i := 0; i < iterations; i++ {
+	for i := 1; i <= iterations; i++ {
 		fmt.Printf("%d ", i)
 		action()
 	}
 	duration := time.Since(start)
-	fmt.Println()
-	fmt.Printf("Elapsed time %d ms.\n", duration.Milliseconds())
+	fmt.Printf("| Elapsed time %d ms.\n", duration.Milliseconds() / int64(iterations))
 }

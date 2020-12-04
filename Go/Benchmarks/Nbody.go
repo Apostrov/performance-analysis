@@ -14,7 +14,7 @@ import (
 	"math"
 )
 
-var n = 0
+var n1 = 0
 
 const (
 	solarMass   = 4 * math.Pi * math.Pi
@@ -144,14 +144,14 @@ var sys = System{
 }
 
 func NbodyRun(repeatTimes int, output bool) {
-	n = repeatTimes
+	n1 = repeatTimes
 	offsetMomentum()
 
 	if output {
 		fmt.Printf("%.9f\n", energy())
 	}
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < n1; i++ {
 		advance(0.01)
 	}
 	if output {
