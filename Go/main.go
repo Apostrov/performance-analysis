@@ -1,15 +1,15 @@
 package main
 
 import (
+	"Benchmarks"
 	"fmt"
-	"nbody"
 	"runtime"
 	"time"
 )
 
 func main() {
 	run("Nbody", 10, func() {
-		nbody.RunBenchmark(50000000, false)
+		Benchmarks.NbodyRun(50000000, false)
 	})
 }
 

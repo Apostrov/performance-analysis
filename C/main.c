@@ -3,11 +3,11 @@
 
 #include "Benchmarks/Benchmarks.h"
 
-static const char fastaOuput[] = "/home/apo/work/performance-analysis/C/Benchmarks/assets/fasta.txt";
+static const char fastaOutputPath[] = "fasta.txt";
 
 void Run(const char* name, int iterations, void (*action)())
 {
-    printf("Running benchmark %s for %d iterations... ", name, iterations);
+    printf("Running benchmark '%s' for %d iterations... ", name, iterations);
     clock_t begin = clock();
     for(int i = 1; i <= iterations; i++)
     {
@@ -31,12 +31,12 @@ void Nbody()
 
 void Fasta()
 {
-    FastaRun(fastaOuput, 25000000);
+    FastaRun(fastaOutputPath, 25000000);
 }
 
 void KNucleotide()
 {
-    KNucleotideRun(fastaOuput, 0);
+    KNucleotideRun(fastaOutputPath, 0);
 }
 
 
@@ -46,6 +46,9 @@ int main()
     Run("Nbody", 10, Nbody);
     Run("Fasta", 10, Fasta);
     Run("KNucleotide", 10, KNucleotide);
+
+    remove(fastaOutputPath);
+
     return 0;
 }
 

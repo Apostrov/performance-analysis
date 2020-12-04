@@ -1,7 +1,6 @@
 package Benchmarks
 
 import java.lang.Runnable
-import Benchmarks.FannkuchRedux
 import java.util.concurrent.atomic.AtomicInteger
 import java.lang.InterruptedException
 

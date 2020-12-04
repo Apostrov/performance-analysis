@@ -30,7 +30,7 @@ object Fasta {
     var last = 42
 
     @JvmStatic
-    fun runBenchmark(outputFile: String, repeatTimes: Int = 1000, output: Boolean = true) {
+    fun runBenchmark(outputFile: String, repeatTimes: Int = 1000) {
         var n = repeatTimes
         for (i in WORKERS.indices) {
             WORKERS[i] = NucleotideSelector()

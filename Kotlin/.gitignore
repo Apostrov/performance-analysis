@@ -1,4 +1,6 @@
-/src/Benchmarks/assets/fasta.txt
+fasta.txt
+PerformanceAnalyze.jar
+lib/kotlin-*
 .DS_Store
 .idea
 /confluence/target

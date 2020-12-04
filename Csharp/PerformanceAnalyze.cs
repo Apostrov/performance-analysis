@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using Benchmarks;
 
 namespace PerformanceAnalyze
 {
     public static class PerformanceAnalyze
     {
-        private const string fastaOutputPath =
-            @"A:\Projects\performance-analysis\Csharp\Benchmarks\assets\fasta.txt"; // Warning! file can have big size
+        private const string fastaOutputPath = @"fasta.txt";
 
         public static void Main(string[] args)
         {
@@ -16,6 +16,11 @@ namespace PerformanceAnalyze
             // Run Fasta before KNucleotide, because it uses his output
             Run("Fasta", 10, () => Fasta.RunBenchmark(fastaOutputPath, 25000000));
             Run("KNucleotide", 10, () => KNucleotide.RunBenchmark(fastaOutputPath));
+            
+            if(File.Exists(fastaOutputPath))
+            {
+                File.Delete(fastaOutputPath);
+            }
         }
         
         public static void Run(string name, int iterations, Action action)

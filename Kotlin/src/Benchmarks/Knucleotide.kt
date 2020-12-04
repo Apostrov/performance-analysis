@@ -1,21 +1,13 @@
 package Benchmarks
 
-import java.util.concurrent.Callable
-import Benchmarks.Knucleotide
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap
 import java.io.*
-import java.util.function.BiConsumer
-import java.util.AbstractMap.SimpleEntry
-import java.lang.StringBuilder
-import java.util.Locale
-import kotlin.Throws
-import java.util.concurrent.Future
-import java.lang.Exception
 import java.nio.charset.StandardCharsets
-import java.util.ArrayList
-import java.util.Comparator
-import java.util.concurrent.ExecutorService
+import java.util.*
+import java.util.AbstractMap.SimpleEntry
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import kotlin.experimental.and
 
 /* The Computer Language Benchmarks Game

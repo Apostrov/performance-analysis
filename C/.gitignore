@@ -3,7 +3,8 @@
 
 # User-specific stuff
 .idea/
-Benchmarks/assets/
+fasta.txt
+bin/
 
 # CMake
 cmake-build-*/

@@ -7,7 +7,7 @@
  * Modified by Antonio Petri
  */
 
-package nbody
+package Benchmarks
 
 import (
 	"fmt"
@@ -143,7 +143,7 @@ var sys = System{
 	},
 }
 
-func RunBenchmark(repeatTimes int, output bool) {
+func NbodyRun(repeatTimes int, output bool) {
 	n = repeatTimes
 	offsetMomentum()
 
