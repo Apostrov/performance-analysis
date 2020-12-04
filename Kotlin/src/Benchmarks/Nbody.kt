@@ -1,6 +1,6 @@
-package Nbody.nbody1
+package Benchmarks
 
-object NbodyJava {
+object Nbody {
     @JvmStatic
     fun runBenchmark(repeatTimes: Int = 10000, output: Boolean = false) {
         val bodies = NBodySystem()
