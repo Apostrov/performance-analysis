@@ -9,6 +9,4 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS "-O3")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
 
-
-
-add_executable(C main.c Nbody/Nbody.c Nbody/Nbody.h)
+add_executable(C main.c Benchmarks/Benchmarks.h Benchmarks/Nbody.c Benchmarks/FannkuchRedux.c)

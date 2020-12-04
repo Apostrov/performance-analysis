@@ -7,7 +7,7 @@
 // Converted from C++ to C by Alexey Medvedchikov.
 // Modified by Jeremy Zerfas.
 
-#include "Nbody.h"
+#include "Benchmarks.h"
 #include <stdint.h>
 #include <stdalign.h>
 #include <immintrin.h>
@@ -226,7 +226,7 @@ static void output_Energy(body bodies[]) {
 }
 
 
-void RunBenchmark(int repeatTimes, int output) {
+void NbodyRun(int repeatTimes, int output) {
     offset_Momentum(solar_Bodies);
     if(output)
         output_Energy(solar_Bodies);

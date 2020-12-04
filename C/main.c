@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "Nbody/Nbody.h"
+#include "Benchmarks/Benchmarks.h"
 
 void Run(const char* name, int iterations, void (*action)())
 {
@@ -13,18 +13,24 @@ void Run(const char* name, int iterations, void (*action)())
         action();
     }
     clock_t end = clock();
-    printf("Elapsed time %f ms.", (double)(end - begin) * 1000.0 / (iterations * CLOCKS_PER_SEC));
+    printf("| Elapsed time %f ms.\n", (double)(end - begin) * 1000.0 / (iterations * CLOCKS_PER_SEC));
+}
+
+void FannkuchRedux()
+{
+    FannkuchReduxRun(12, 0);
 }
 
 void Nbody()
 {
-    RunBenchmark(50000000, 0);
+    NbodyRun(50000000, 0);
 }
 
 
 int main()
 {
-    Run("Nbody", 10, Nbody);
+    Run("FannkuchRedux", 1, FannkuchRedux);
+    //Run("Nbody", 1, Nbody);
     return 0;
 }
 
