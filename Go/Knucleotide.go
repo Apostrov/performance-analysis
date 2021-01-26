@@ -5,7 +5,7 @@
  * based on Go#6 C++#2
  */
 
-package Benchmarks
+package main
 
 import (
 	"bufio"

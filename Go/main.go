@@ -1,7 +1,6 @@
 package main
 
 import (
-	"Benchmarks"
 	"fmt"
 	"os"
 	"runtime"
@@ -12,16 +11,16 @@ const fastaOutputPath = "fasta.txt"
 
 func main() {
 	run("FannkuchReduxRun", 10, func() {
-		Benchmarks.FannkuchReduxRun(12 , false)
+		FannkuchReduxRun(12 , false)
 	})
 	run("Nbody", 10, func() {
-		Benchmarks.NbodyRun(50000000, false)
+		NbodyRun(50000000, false)
 	})
 	run("Fasta", 10, func() {
-		Benchmarks.FastaRun(fastaOutputPath, 25000000)
+		FastaRun(fastaOutputPath, 25000000)
 	})
 	run("Knucleotide", 10, func() {
-		Benchmarks.KnucleotidexRun(fastaOutputPath, false)
+		KnucleotidexRun(fastaOutputPath, false)
 	})
 
 	var _ = os.Remove(fastaOutputPath)
@@ -39,5 +38,5 @@ func run(name string, iterations int, action func()) {
 		action()
 	}
 	duration := time.Since(start)
-	fmt.Printf("| Elapsed time %d ms.\n", duration.Milliseconds() / int64(iterations))
+	fmt.Printf("| Elapsed time %d ms.\n", duration.Milliseconds()/int64(iterations))
 }

@@ -7,7 +7,7 @@
  * Modified by Antonio Petri
  */
 
-package Benchmarks
+package main
 
 import (
 	"fmt"

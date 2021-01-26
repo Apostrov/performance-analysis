@@ -8,7 +8,7 @@
  * parallel hack by INADA Naoki
  */
 
-package Benchmarks
+package main
 
 import (
 	"bufio"

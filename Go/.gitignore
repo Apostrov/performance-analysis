@@ -1,5 +1,6 @@
 .idea/
 fasta.txt
+main
 
 # Binaries for programs and plugins
 *.exe

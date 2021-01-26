@@ -8,7 +8,7 @@
  *
  */
 
-package Benchmarks
+package main
 
 import (
 	"fmt"
