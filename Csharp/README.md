@@ -1,2 +1,5 @@
 ### HOWTO
-`dotnet run --configuration Release --verbosity m `
+```sh
+dotnet run --configuration Release --verbosity m 
+```
+

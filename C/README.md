@@ -1,5 +1,5 @@
 ### HOWTO
-```
+```sh
 mkdir bin
 cd bin
 cmake ../
