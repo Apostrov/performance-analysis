@@ -1,30 +1,25 @@
-package Benchmarks
-
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap
-import java.io.*
-import java.nio.charset.StandardCharsets
-import java.util.*
-import java.util.AbstractMap.SimpleEntry
-import java.util.concurrent.Callable
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import kotlin.experimental.and
-
 /* The Computer Language Benchmarks Game
  https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
 
  contributed by James McIlree
- modified by Tagir Valeev
+ ByteString code thanks to Matthieu Bentot and The Anh Tran
+ modified by Andy Fingerhut
  */
+package Benchmarks
+
+import java.util.concurrent.Callable
+import kotlin.Throws
+import java.lang.Exception
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.lang.StringBuilder
+import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 object Knucleotide {
-    val codes = byteArrayOf(-1, 0, -1, 1, 3, -1, -1, 2)
-    val nucleotides = charArrayOf('A', 'C', 'G', 'T')
-    fun createFragmentTasks(
-        sequence: ByteArray,
-        fragmentLengths: IntArray
-    ): ArrayList<Callable<Result>> {
-        val tasks = ArrayList<Callable<Result>>()
+    fun createFragmentTasks(sequence: ByteArray, fragmentLengths: IntArray): ArrayList<Callable<Map<ByteString, ByteString>>> {
+        val tasks = ArrayList<Callable<Map<ByteString, ByteString>>>()
         for (fragmentLength in fragmentLengths) {
             for (index in 0 until fragmentLength) {
                 tasks.add(Callable { createFragmentMap(sequence, index, fragmentLength) })
@@ -33,164 +28,130 @@ object Knucleotide {
         return tasks
     }
 
-    fun createFragmentMap(sequence: ByteArray, offset: Int, fragmentLength: Int): Result {
-        val res = Result(fragmentLength)
-        val map = res.map
+    fun createFragmentMap(sequence: ByteArray, offset: Int, fragmentLength: Int): Map<ByteString, ByteString> {
+        val map = HashMap<ByteString, ByteString>()
         val lastIndex = sequence.size - fragmentLength + 1
+        var key = ByteString(fragmentLength)
         var index = offset
         while (index < lastIndex) {
-            map.addTo(getKey(sequence, index, fragmentLength), 1)
+            key.calculateHash(sequence, index)
+            val fragment = map[key]
+            if (fragment != null) {
+                fragment.count++
+            } else {
+                map[key] = key
+                key = ByteString(fragmentLength)
+            }
             index += fragmentLength
         }
-        return res
+        return map
     }
 
-    fun sumTwoMaps(map1: Result, map2: Result): Result {
-        map2.map.forEach { (key: Long?, value: Int?) -> map1.map.addTo(key!!, value!!) }
+    // Destructive!
+    fun sumTwoMaps(map1: MutableMap<ByteString, ByteString>, map2: Map<ByteString, ByteString>): Map<ByteString, ByteString> {
+        for ((key, value) in map2) {
+            val sum = map1[key]
+            if (sum != null) sum.count += value.count else map1[key] = value
+        }
         return map1
     }
 
-    fun writeFrequencies(totalCount: Float, frequencies: Result): String {
-        val freq: MutableList<Map.Entry<String, Int>> = ArrayList<Map.Entry<String, Int>>(frequencies.map.size)
-        frequencies.map.forEach { (key: Long, cnt: Int) ->
-            freq.add(
-                SimpleEntry(
-                    keyToString(
-                        key,
-                        frequencies.keyLength
-                    ), cnt
-                )
-            )
-        }
-        freq.sortWith(java.util.Map.Entry.comparingByValue(Comparator.reverseOrder()))
+    fun writeFrequencies(totalCount: Float, frequencies: Map<ByteString, ByteString>): String {
+        val list: SortedSet<ByteString> = TreeSet(frequencies.values)
         val sb = StringBuilder()
-        for ((key, value) in freq) {
-            sb.append(
-                String.format(
-                    Locale.ENGLISH, "%s %.3f\n", key,
-                    value * 100.0f / totalCount
-                )
-            )
-        }
+        for (k in list) sb.append(String.format("%s %.3f\n", k.toString().toUpperCase(), k.count.toFloat() * 100.0f / totalCount))
         return sb.append('\n').toString()
     }
 
     @Throws(Exception::class)
-    fun writeCount(futures: List<Future<Result>>, nucleotideFragment: String): String {
-        val key = toCodes(
-            nucleotideFragment.toByteArray(StandardCharsets.ISO_8859_1),
-            nucleotideFragment.length
-        )
-        val k = getKey(key, 0, nucleotideFragment.length)
+    fun writeCount(futures: MutableList<Future<Map<ByteString, ByteString>>>, nucleotideFragment: String): String {
+        val key = ByteString(nucleotideFragment.length)
+        key.calculateHash(nucleotideFragment.toByteArray(), 0)
         var count = 0
         for (future in futures) {
-            val f = future.get()
-            if (f.keyLength == nucleotideFragment.length) {
-                count += f.map[k]
-            }
+            val temp = future.get()[key]
+            if (temp != null) count += temp.count
         }
-        return """$count	$nucleotideFragment
+        return """$count	${nucleotideFragment.toUpperCase()}
 """
-    }
-
-    /**
-     * Convert long key to the nucleotides string
-     */
-    fun keyToString(key: Long, length: Int): String {
-        var key = key
-        val res = CharArray(length)
-        for (i in 0 until length) {
-            res[length - i - 1] = nucleotides[(key and 0x3).toInt()]
-            key = key shr 2
-        }
-        return String(res)
-    }
-
-    /**
-     * Get the long key for given byte array of codes at given offset and length
-     * (length must be less than 32)
-     */
-    fun getKey(arr: ByteArray, offset: Int, length: Int): Long {
-        var key: Long = 0
-        for (i in offset until offset + length) {
-            key = key * 4 + arr[i]
-        }
-        return key
-    }
-
-    /**
-     * Convert given byte array (limiting to given length) containing acgtACGT
-     * to codes (0 = A, 1 = C, 2 = G, 3 = T) and returns new array
-     */
-    fun toCodes(sequence: ByteArray, length: Int): ByteArray {
-        val result = ByteArray(length)
-        for (i in 0 until length) {
-            result[i] = codes[(sequence[i] and 0x7).toInt()]
-        }
-        return result
-    }
-
-    @Throws(IOException::class)
-    fun read(`is`: InputStream?): ByteArray {
-        var line: String
-        val `in` = BufferedReader(
-            InputStreamReader(
-                `is`,
-                StandardCharsets.ISO_8859_1
-            )
-        )
-        while (`in`.readLine().also { line = it } != null) {
-            if (line.startsWith(">THREE")) break
-        }
-        var bytes = ByteArray(1048576)
-        var position = 0
-        while (`in`.readLine().also { line = it } != null && line[0] != '>') {
-            if (line.length + position > bytes.size) {
-                val newBytes = ByteArray(bytes.size * 2)
-                System.arraycopy(bytes, 0, newBytes, 0, position)
-                bytes = newBytes
-            }
-            for (i in 0 until line.length) bytes[position++] = line[i].toByte()
-        }
-        return toCodes(bytes, position)
     }
 
     @Throws(Exception::class)
     fun runBenchmark(inputFile: String, output: Boolean = false) {
-        val sequence = File(inputFile).inputStream().readBytes()
-        val pool = Executors.newFixedThreadPool(
-            Runtime.getRuntime()
-                .availableProcessors()
-        )
+        val `in` = File(inputFile).inputStream().bufferedReader()
+        var start = false
+        val baos = ByteArrayOutputStream()
+        for (line in `in`.lines()) {
+            if (start) {
+                val bytes = ByteArray(line.length)
+                var i: Int = 0
+                while (i < line.length) {
+                    bytes[i] = line[i].toByte()
+                    i++
+                }
+                baos.write(bytes, 0, i)
+            } else if (line.startsWith(">THREE")) {
+                start = true
+            }
+        }
+        val sequence = baos.toByteArray()
+        val pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
         val fragmentLengths = intArrayOf(1, 2, 3, 4, 6, 12, 18)
-        val futures = pool.invokeAll(
-            createFragmentTasks(
-                sequence,
-                fragmentLengths
-            )
-        )
+        val futures: MutableList<Future<Map<ByteString, ByteString>>> = pool.invokeAll(createFragmentTasks(sequence, fragmentLengths))
         pool.shutdown()
         val sb = StringBuilder()
         sb.append(writeFrequencies(sequence.size.toFloat(), futures[0].get()))
-        sb.append(
-            writeFrequencies(
-                (sequence.size - 1).toFloat(),
-                sumTwoMaps(futures[1].get(), futures[2].get())
-            )
-        )
-        val nucleotideFragments = arrayOf(
-            "GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
-            "GGTATTTTAATTTATAGT"
-        )
+        sb.append(writeFrequencies((sequence.size - 1).toFloat(), sumTwoMaps(futures[1].get() as MutableMap<ByteString, ByteString>, futures[2].get())))
+        val nucleotideFragments = arrayOf("ggt", "ggta", "ggtatt", "ggtattttaatt", "ggtattttaatttatagt")
         for (nucleotideFragment in nucleotideFragments) {
             sb.append(writeCount(futures, nucleotideFragment))
         }
-        if (output) {
-            print(sb)
-        }
+        if (output)
+            print(sb.toString())
     }
 
-    class Result(var keyLength: Int) {
-        var map = Long2IntOpenHashMap()
+    class ByteString(size: Int) : Comparable<ByteString> {
+        var hash = 0
+        var count = 1
+        val bytes: ByteArray
+        fun calculateHash(k: ByteArray, offset: Int) {
+            var temp = 0
+            for (i in bytes.indices) {
+                val b = k[offset + i]
+                bytes[i] = b
+                temp = temp * 31 + b
+            }
+            hash = temp
+        }
+
+        override fun hashCode(): Int {
+            return hash
+        }
+
+        override fun equals(obj: Any?): Boolean {
+            return Arrays.equals(bytes, (obj as ByteString)!!.bytes)
+        }
+
+        override fun compareTo(other: ByteString): Int {
+            return if (other.count != count) {
+                other.count - count
+            } else {
+                // Without this case, if there are two or more strings
+                // with exactly the same count in a Map, then the
+                // TreeSet constructor called in writeFrequencies will
+                // only add the first one, and the rest will not
+                // appear in the output.  Also this is required to
+                // satisfy the rules of the k-nucleotide problem.
+                toString().compareTo(other.toString())
+            }
+        }
+
+        override fun toString(): String {
+            return String(bytes)
+        }
+
+        init {
+            bytes = ByteArray(size)
+        }
     }
 }
