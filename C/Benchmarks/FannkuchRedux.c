@@ -14,7 +14,7 @@
 /* this depends highly on the platform.  It might be faster to use
     char type on 32-bit systems; it might be faster to use unsigned. */
 
-typedef char elem;
+typedef unsigned elem;
 
 elem s[16] __attribute__ ((aligned (16)));
 
