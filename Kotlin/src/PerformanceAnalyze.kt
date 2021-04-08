@@ -8,8 +8,8 @@ private const val fastaOutputPath = "fasta.txt"
 fun main() {
     PerformanceAnalyze.Run("FannkuchRedux", 10) { Benchmarks.FannkuchRedux.runBenchmark(12) }
     PerformanceAnalyze.Run("Nbody", 10) { Benchmarks.Nbody.runBenchmark(50000000) }
-    PerformanceAnalyze.Run("Fasta", 1) { Fasta.runBenchmark(fastaOutputPath, 25000000) }
-    PerformanceAnalyze.Run("Knucleotide", 1) { Knucleotide.runBenchmark(fastaOutputPath) }
+    PerformanceAnalyze.Run("Fasta", 10) { Fasta.runBenchmark(fastaOutputPath, 25000000) }
+    PerformanceAnalyze.Run("Knucleotide", 10) { Knucleotide.runBenchmark(fastaOutputPath) }
 
     val myFile = File(fastaOutputPath)
     if (myFile.exists())
@@ -19,9 +19,13 @@ fun main() {
 class PerformanceAnalyze {
     companion object {
         fun Run(name: String, iterations: Int, action: () -> Unit) {
+
             // Perform garbage collection.
             System.gc()
             System.runFinalization();
+
+            // Force JIT compilation of the method.
+            action()
 
             print("Running benchmark '${name}' for $iterations iterations... ")
             var time = 0L;

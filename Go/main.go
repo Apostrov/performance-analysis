@@ -37,6 +37,7 @@ func run(name string, iterations int, action func()) {
 		fmt.Printf("%d ", i)
 		action()
 	}
-	duration := time.Since(start)
-	fmt.Printf("| Elapsed time %d ms.\n", duration.Milliseconds()/int64(iterations))
+	watch := time.Since(start)
+
+	fmt.Printf("| Elapsed time %d ms.\n", watch.Milliseconds()/int64(iterations))
 }
