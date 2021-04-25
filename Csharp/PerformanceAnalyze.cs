@@ -13,7 +13,7 @@ namespace PerformanceAnalyze
         {
             Run("FannkuchRedux", 10, () => FannkuchRedux.RunBenchmark(12));
             Run("Nbody", 10, () => NBody.RunBenchmark(50000000));
-            // Run Fasta before KNucleotide, because it uses his output
+            //Run Fasta before KNucleotide, because it uses his output
             Run("Fasta", 10, () => Fasta.RunBenchmark(fastaOutputPath, 25000000));
             Run("KNucleotide", 10, () => KNucleotide.RunBenchmark(fastaOutputPath));
 
@@ -25,14 +25,15 @@ namespace PerformanceAnalyze
 
         public static void Run(string name, int iterations, Action action)
         {
-            Console.Write($"Running benchmark '{name}' for {iterations} iterations... ");
-
             // Perform garbage collection.
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
             // Force JIT compilation of the method.
             action.Invoke();
+            
+            DateTime now = DateTime.Now;
+            Console.Write($"Time '{now.TimeOfDay}'. Running benchmark '{name}' for {iterations} iterations... ");
 
             // Run the benchmark.
             Stopwatch watch = Stopwatch.StartNew();
