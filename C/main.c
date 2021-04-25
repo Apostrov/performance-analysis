@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include "Benchmarks/Benchmarks.h"
 
@@ -7,6 +8,11 @@ static const char fastaOutputPath[] = "fasta.txt";
 
 void Run(const char* name, int iterations, void (*action)())
 {
+    struct timeval tp;
+    gettimeofday(&tp, 0);
+    time_t curtime = tp.tv_sec;
+    struct tm *t = localtime(&curtime);
+    printf("Time '%02d:%02d:%02d.%03d'. ", t->tm_hour, t->tm_min, t->tm_sec, tp.tv_usec/1000);
     printf("Running benchmark '%s' for %d iterations... ", name, iterations);
     clock_t begin = clock();
     for(int i = 1; i <= iterations; i++)
