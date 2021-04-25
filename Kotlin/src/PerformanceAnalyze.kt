@@ -2,6 +2,8 @@ import Benchmarks.Fasta
 import Benchmarks.Knucleotide
 import kotlin.system.measureTimeMillis
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 private const val fastaOutputPath = "fasta.txt"
 
@@ -27,7 +29,9 @@ class PerformanceAnalyze {
             // Force JIT compilation of the method.
             action()
 
-            print("Running benchmark '${name}' for $iterations iterations... ")
+            val currentDateTime = LocalDateTime.now()
+            print("Time '${currentDateTime.format(DateTimeFormatter.ISO_TIME)}'. Running benchmark '${name}' for $iterations iterations... ")
+
             var time = 0L;
             for (i in 1..iterations) {
                 print("$i ")
