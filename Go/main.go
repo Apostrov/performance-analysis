@@ -27,10 +27,13 @@ func main() {
 }
 
 func run(name string, iterations int, action func()) {
-	fmt.Printf("Running benchmark '%s' for %d iterations... ", name, iterations)
+
 
 	// Perform garbage collection.
 	runtime.GC()
+
+	fmt.Print("Time '", time.Now().Format("15:04:05.0000"))
+	fmt.Printf("'. Running benchmark '%s' for %d iterations... ", name, iterations)
 
 	start := time.Now()
 	for i := 1; i <= iterations; i++ {
