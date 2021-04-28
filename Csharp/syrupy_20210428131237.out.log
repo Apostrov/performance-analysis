@@ -1,0 +1,4 @@
+Time '13:12:43.9193362'. Running benchmark 'FannkuchRedux' for 10 iterations... 1 2 3 4 5 6 7 8 9 10 | Time '13:13:55.1324336'. Elapsed time 7118 ms.
+Time '13:13:57.7932857'. Running benchmark 'Nbody' for 10 iterations... 1 2 3 4 5 6 7 8 9 10 | Time '13:14:23.2243220'. Elapsed time 2543 ms.
+Time '13:14:24.7922762'. Running benchmark 'Fasta' for 10 iterations... 1 2 3 4 5 6 7 8 9 10 | Time '13:14:39.6798561'. Elapsed time 1488 ms.
+Time '13:14:41.3079114'. Running benchmark 'KNucleotide' for 10 iterations... 1 2 3 4 5 6 7 8 9 10 | Time '13:15:43.4779483'. Elapsed time 6217 ms.

@@ -32,8 +32,7 @@ namespace PerformanceAnalyze
             // Force JIT compilation of the method.
             action.Invoke();
             
-            DateTime now = DateTime.Now;
-            Console.Write($"Time '{now.TimeOfDay}'. Running benchmark '{name}' for {iterations} iterations... ");
+            Console.Write($"Time '{DateTime.Now.TimeOfDay}'. Running benchmark '{name}' for {iterations} iterations... ");
 
             // Run the benchmark.
             Stopwatch watch = Stopwatch.StartNew();
@@ -46,7 +45,7 @@ namespace PerformanceAnalyze
             watch.Stop();
 
             // Output results.
-            Console.WriteLine($"| Elapsed time {watch.ElapsedMilliseconds / iterations} ms.");
+            Console.WriteLine($"| Time '{DateTime.Now.TimeOfDay}'. Elapsed time {watch.ElapsedMilliseconds / iterations} ms.");
         }
     }
 }
