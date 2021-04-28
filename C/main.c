@@ -22,7 +22,12 @@ void Run(const char* name, int iterations, void (*action)())
         action();
     }
     clock_t end = clock();
-    printf("| Elapsed time %f ms.\n", (double)(end - begin) * 1000.0 / (iterations * CLOCKS_PER_SEC));
+
+    gettimeofday(&tp, 0);
+    curtime = tp.tv_sec;
+    t = localtime(&curtime);
+    printf("| Time '%02d:%02d:%02d.%03d'. ", t->tm_hour, t->tm_min, t->tm_sec, tp.tv_usec/1000);
+    printf("Elapsed time %f ms.\n", (double)(end - begin) * 1000.0 / (iterations * CLOCKS_PER_SEC));
 }
 
 void FannkuchRedux()
