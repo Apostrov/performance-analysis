@@ -29,8 +29,7 @@ class PerformanceAnalyze {
             // Force JIT compilation of the method.
             action()
 
-            val currentDateTime = LocalDateTime.now()
-            print("Time '${currentDateTime.format(DateTimeFormatter.ISO_TIME)}'. Running benchmark '${name}' for $iterations iterations... ")
+            print("Time '${LocalDateTime.now().format(DateTimeFormatter.ISO_TIME)}'. Running benchmark '${name}' for $iterations iterations... ")
 
             var time = 0L;
             for (i in 1..iterations) {
@@ -39,7 +38,7 @@ class PerformanceAnalyze {
                     action()
                 }
             }
-            println("| Elapsed time ${time / iterations} ms.")
+            println("| Time '${LocalDateTime.now().format(DateTimeFormatter.ISO_TIME)}'. Elapsed time ${time / iterations} ms.")
         }
     }
 }
